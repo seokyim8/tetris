@@ -1,0 +1,11 @@
+body{
+    text-align: center;
+    background-color: antiquewhite;
+}
+#board{
+    border: 1px solid white;
+    background-color: white;
+}
+#message{
+    font-family: 'Oswald', sans-serif;
+}
