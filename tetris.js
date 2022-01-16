@@ -1,68 +1,114 @@
 window.onload = startGame;
-/** @type {canvas} */
-let canvas;
-/** @type {CanvasRenderingContext2D} */
-let ctx;
+
 
 //Tetris variables
+//one block is 25
 let fall_time = 1000;
 let stationary_tetriminos = [];
 
 function startGame(){
-    canvas = document.getElementById("board");
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById("board");
+    /** @type {CanvasRenderingContext2D} */
+    const ctx = canvas.getContext("2d");
     canvas.width = 250;
     canvas.height = 475;
-    /** @type {CanvasRenderingContext2D} */
-    ctx = canvas.getContext("2d");
     ctx.fillStyle = "red";
 
     let game_ended = false;
+
+    let tb = new TetrisBoard();
     
     while(!game_ended){
         let floor_touched = false;
-        let tetrimino = new Tetrimino(BlockType.T);
+        let tetrimino = new Tetrimino(BlockType.T,canvas,ctx);
         stationary_tetriminos.push(tetrimino);
+        update(canvas, ctx);
+        tetrimino.fall();
         let tetrimino_interval_id = setInterval(()=>{
             if(tetrimino.y == canvas.height - 25){
                 floor_touched = true;
+                update(canvas, ctx);
+                tetrimino.stationary = true;
                 clearInterval(tetrimino_interval_id);
             }
             else{
+                update(canvas, ctx);
                 tetrimino.fall();
-                update();
             }
         },fall_time);
-        //set event listener for arrow keys
-
-        break;
+        //add event listener for arrow keys
+        window.addEventListener("keydown",(e)=>{
+            switch(e.key){
+                case "Left":
+                case "ArrowLeft":
+                    tetrimino.move("left");
+                    break;
+                case "Right":
+                case "ArrowRight": 
+                    tetrimino.move("right");
+                    break;
+            }
+        });
+        
+        let timeout = setTimeout(()=>{
+            if()
+        }, 100);
     }
-
-
-
-
-    let tetrimino = new Tetrimino(50, 0, 0, BlockType.L);
-    tetrimino.draw();
-    let tetris_fall = setInterval(() => {
-        update(tetrimino);
-    }, fall_time);
 
     
 }
 
 
 class Tetrimino{
-    constructor(type){
-        this.x = 50;
-        this.y = -25;
+    constructor(type,canvas,ctx){
+        this.x = 75;
+        this.y = 0;
         this.blocktype = type;
         this.dx = 25;
         this.dy = 25;
+        /**@type {CanvasRenderingContext2D} */
+        this.ctx = ctx;
+        this.canvas = canvas;
+        this.stationary = false;
     }
     fall(){
         this.y += this.dy;
     }
     draw(){
-        ctx.fillRect(this.x, this.y, 25, 25);
+        this.ctx.fillRect(this.x, this.y, 25, 25);
+    }
+    move(direction){
+        if(this.stationary){
+            return;
+        }
+        switch(direction){
+            case "left":
+                if(this.x != 0){
+                    this.x -= this.dx;
+                }
+            break;
+            case "right":
+                if(this.x != 225){
+                    this.x += this.dx;
+                }
+            break;
+        }
+        update(this.canvas, this.ctx);
+    }
+}
+
+class TetrisBoard{
+    constructor(){
+        this.width = 250;
+        this.height = 475;
+        this.blocks = [];
+        for(let i = 0; i < 10; i++){
+            this.blocks.push([]);
+            for(let j = 0; j < 19; j++){
+                this.blocks[i].push(0);
+            }
+        }
     }
 }
 
@@ -89,9 +135,18 @@ class BlockType{
     static I = new BlockType("O");
 }
 
-function update(){
+function update(canvas, ctx){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     for(let i = 0; i < stationary_tetriminos.length; i++){
         stationary_tetriminos[i].draw();
     }
+}
+
+async function waitForFloorTouch(floor_touched){
+    await new Promise((myResolve, myError)=>{
+        while(!floor_touched){
+
+        }
+        myResolve("okay");
+    });
 }
