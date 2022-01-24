@@ -20,17 +20,16 @@ function startGame(){
     let tb = new TetrisBoard();
     
     while(!game_ended){
-        let floor_touched = false;
         let tetrimino = new Tetrimino(BlockType.T,canvas,ctx);
         stationary_tetriminos.push(tetrimino);
         update(canvas, ctx);
         tetrimino.fall();
         let tetrimino_interval_id = setInterval(()=>{
+            tetrimino.setInterval(tetrimino_interval_id);
             if(tetrimino.y == canvas.height - 25){
-                floor_touched = true;
                 update(canvas, ctx);
                 tetrimino.stationary = true;
-                clearInterval(tetrimino_interval_id);
+                tetrimino.clearInterval();
             }
             else{
                 update(canvas, ctx);
@@ -48,12 +47,12 @@ function startGame(){
                 case "ArrowRight": 
                     tetrimino.move("right");
                     break;
+                case "ArrowDown":
+                    tetrimino.move("down");
+                    break;
             }
         });
-        
-        let timeout = setTimeout(()=>{
-            if()
-        }, 100);
+        break;
     }
 
     
@@ -71,6 +70,7 @@ class Tetrimino{
         this.ctx = ctx;
         this.canvas = canvas;
         this.stationary = false;
+        this.interval_id = null;
     }
     fall(){
         this.y += this.dy;
@@ -78,7 +78,7 @@ class Tetrimino{
     draw(){
         this.ctx.fillRect(this.x, this.y, 25, 25);
     }
-    move(direction){
+    move(direction){//returns whether tetris block cannot move anymore or not
         if(this.stationary){
             return;
         }
@@ -93,8 +93,39 @@ class Tetrimino{
                     this.x += this.dx;
                 }
             break;
+            case "down":
+                if(this.y == this.canvas.height - 25){
+                    this.clearInterval();
+                    this.stationary = true;
+                    return true;
+                }
+                else{
+                    this.y += this.dy;
+                    this.clearInterval();
+
+                    this.interval_id = setInterval(()=>{
+                        if(this.y == this.canvas.height - 25){
+                            update(this.canvas, this.ctx);
+                            this.stationary = true;
+                            this.clearInterval();
+                        }
+                        else{
+                            this.fall();
+                            update(this.canvas, this.ctx);
+                        }
+                    },fall_time);
+                }
+            break;
         }
         update(this.canvas, this.ctx);
+        return false;
+    }
+    setInterval(interval_id){
+        this.interval_id = interval_id
+    }
+    clearInterval(){
+        clearInterval(this.interval_id);
+        this.interval_id = null;
     }
 }
 
